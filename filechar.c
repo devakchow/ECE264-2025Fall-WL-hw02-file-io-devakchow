@@ -42,30 +42,34 @@ bool countChar(char *filename, int counts[][ALPHABET_SIZE_W_SPACE]) {
     return false; // file could not opened
   }
 
-  int prev_ind = -1; // to track previous valid character index
-  int curr_ind; // current index
+  int first_char_ind = -1; // index of first character in current pair
+  bool need_first = true; // flag to track if we need first or second character
 
-  // read variables one by one
+  // read characters one by one
   int ch;
   while ((ch = fgetc(file)) != EOF) {
-    curr_ind = char_to_index(ch);
-    // skip invalid characters
+  
+    int curr_ind = char_to_index(ch);
+
     if (curr_ind == -1) {
-      continue; // invalid character, so skip 
+      continue; // skip invalid characters
     }
 
-    // if there is a previous valid character, increment the count
-    if (prev_ind != -1) {
-      counts[prev_ind][curr_ind]++;
+    if (need_first) {
+      // we need the first character of the pair
+      first_char_ind = curr_ind;
+      need_first = false; // next we will need the second character
+    } 
+    else {
+      // we have second character, form the pair
+      counts[first_char_ind][curr_ind]++; // increment the count for the pair
+      need_first = true; // next we will need the first character again
     }
-
-    // update prev_ind to current character's index 
-    prev_ind = curr_ind;
   }
 
   // handle leftover single character at the end of file
-  if (prev_ind != -1) {
-    counts[prev_ind][ALPHABET_SIZE]++; // increment count for space
+  if (!need_first && first_char_ind != -1) {
+    counts[first_char_ind][ALPHABET_SIZE]++; // increment count for space
   }
 
   fclose(file);
